@@ -437,3 +437,67 @@ Erzeugte lokale Artefakte:
 Methodische Bedeutung:
 
 Damit wurde die Pipeline erstmals von reiner Aktivitätsklassifikation zu erklärbarer, personalisierter Abweichungsmodellierung erweitert. Das ist der zentrale Übergang vom Studienprojekt zur Bachelorarbeit: KI und Zeitreihenverarbeitung dienen nicht nur der Klassifikation, sondern der interpretierbaren Erkennung individueller physiologischer und funktionaler Abweichungsmuster.
+
+## 2026-07-03 – WESAD als autonom-physiologischer Referenzdatensatz integriert
+
+WESAD wurde aus dem Studienprojekt in das Bachelor-Arbeitsverzeichnis übernommen und als autonom-physiologischer Referenzdatensatz eingebunden.
+
+Rohdatenquelle im Studienprojekt:
+
+- `/home/dennis_preusch/Dokumente/UNI/5.Semester/KI-Studienprojekt/project-data/raw/wesad`
+
+Ziel im Bachelorprojekt:
+
+- `data/raw/wesad`
+
+Validierung des Imports:
+
+- Gesamtgröße: ca. `17 GB`
+- Subject-PKL-Dateien: `15`
+- Subjects: S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14, S15, S16, S17
+
+Implementiertes Modul:
+
+- `src/parsers/parse_wesad_chest.py`
+
+Bezug zum Studienprojekt:
+
+Im Studienprojekt wurde WESAD bereits für ROCKET-basierte Stressklassifikation und für eine autonome Dysbalance-Proof-of-Concept-Analyse verwendet. Die Bachelorarbeit führt diese Methodik fort, organisiert sie aber in einer saubereren, wiederverwendbaren Pipeline.
+
+Tensorisierungsstrategie:
+
+- Chest-Signale only
+- Kanäle: ACC x/y/z, ECG, EMG, EDA, Temp, Resp
+- 8 Kanäle insgesamt
+- Samplingrate: 700 Hz
+- Fenstergröße: 7000 Samples
+- Fensterdauer: 10 Sekunden
+- Schrittweite: 3500 Samples
+- Overlap: 50 Prozent
+- Labels: 1 baseline, 2 stress, 3 amusement, 4 meditation
+- Labels 0, 6 und 7 werden ausgeschlossen
+
+Verbesserung gegenüber dem Studienprojekt:
+
+Die neue Bachelor-Version nutzt segment-sicheres Windowing. Fenster werden nur innerhalb gültiger, zusammenhängender Labelsegmente erzeugt. Dadurch entstehen keine Fenster über irrelevante oder transiente Labelbereiche hinweg.
+
+Erzeugte lokale Artefakte:
+
+- `data/interim/wesad/chest_by_subject/X_S*.npy`
+- `data/interim/wesad/chest_by_subject/y_S*.npy`
+- `data/interim/wesad/chest_by_subject/metadata_S*.csv`
+- `reports/datasets/wesad_chest_tensorization_summary.csv`
+
+Validierung:
+
+- 15 X-Dateien
+- 15 y-Dateien
+- 15 Metadaten-Dateien
+- Gesamtzahl Fenster: `8892`
+- Tensorform pro Subject: `(n_windows, 8, 7000)`
+- NaNs: `0`
+- Größe der WESAD-Interim-Artefakte: ca. `3.8 GB`
+
+Methodische Bedeutung:
+
+Mit WESAD steht nun neben PAMAP2 ein zweiter vollständig tensorisierter Datensatz im Bachelor-Framework zur Verfügung. Während PAMAP2 den funktional-motorischen Analysepfad abbildet, repräsentiert WESAD den autonom-physiologischen Analysepfad. Damit wird die im Studienprojekt entwickelte multimodale Dysbalance-Idee systematisch in der Bachelorarbeit fortgeführt.
