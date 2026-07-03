@@ -172,3 +172,31 @@ Ergebnis:
 Methodische Bedeutung:
 
 Dieser Schritt trennt Rohdateninspektion von echter Modellvorbereitung. Dadurch bleibt nachvollziehbar, welche Daten aus methodischen Gründen ausgeschlossen wurden und welche Modalitäten in der ersten Framework-Iteration verwendet werden.
+
+## 2026-07-03 – PAMAP2 Cleaned Interim Files erzeugt
+
+Die PAMAP2-Cleaning-Pipeline wurde erweitert, sodass nicht nur ein Summary-Report erzeugt wird, sondern auch echte bereinigte Zwischenartefakte.
+
+Erzeugte lokale Dateien:
+
+- `data/interim/pamap2/protocol_cleaned/subject101_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject102_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject103_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject104_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject105_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject106_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject107_cleaned.pkl.gz`
+- `data/interim/pamap2/protocol_cleaned/subject108_cleaned.pkl.gz`
+
+Subject 109 erzeugt kein Clean-Artefakt, da es für die erste robuste Pipeline-Iteration ausgeschlossen wird und nach Filterung keine Zeilen übrig bleiben.
+
+Validierung:
+
+- 8 Clean-Dateien wurden erzeugt.
+- Gesamtgröße der Clean-Artefakte: ca. 197 MB.
+- `subject101_cleaned.pkl.gz` besitzt die Form `(249957, 22)`.
+- Die Spalten entsprechen exakt der dokumentierten ersten Cleaning-Strategie.
+
+Methodische Bedeutung:
+
+Damit ist PAMAP2 als erster neuer Datensatz nicht nur theoretisch ausgewählt, sondern praktisch in eine reproduzierbare Zwischenrepräsentation überführt. Dieser Zustand bildet die direkte Grundlage für Fensterung, Tensorisierung und spätere MultiRocket-Experimente.
