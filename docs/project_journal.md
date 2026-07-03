@@ -336,3 +336,50 @@ Validierung:
 Methodische Bedeutung:
 
 PAMAP2 ist damit als erster neuer multimodaler Datensatz vollständig bis zu modellbereiten, aeon-kompatiblen Zeitreihentensoren verarbeitet. Die Pipeline ist reproduzierbar, segment-sicher, dokumentiert und für erste MultiRocket- oder MiniRocket-Baseline-Experimente vorbereitet.
+
+## 2026-07-03 – Erste PAMAP2 MiniRocket Activity-Classification-Baseline
+
+Für PAMAP2 wurde eine erste KI-Baseline mit MiniRocket implementiert:
+
+- `src/models/train_pamap2_activity_baseline.py`
+
+Aufgabe:
+
+- Activity Classification auf PAMAP2
+- Input: by-subject Tensoren
+- Tensorform: `(n_windows, 19, 500)`
+- Modell: `MiniRocketClassifier`
+- Split: subject-wise
+
+Split:
+
+- Training: Subjects 101, 102, 103, 104, 105, 106
+- Test: Subjects 107, 108
+
+Datenumfang:
+
+- Train shape: `(5647, 19, 500)`
+- Test shape: `(1940, 19, 500)`
+- Train NaNs: `0`
+- Test NaNs: `0`
+- Testklassen: 12 Aktivitätsklassen
+
+Ergebnis:
+
+- Accuracy: `0.9541`
+- Macro F1: ca. `0.94`
+- Weighted F1: ca. `0.95`
+
+Erzeugte lokale Artefakte:
+
+- `reports/models/pamap2_minirocket_baseline_summary.json`
+- `reports/models/pamap2_minirocket_classification_report.json`
+- `reports/models/pamap2_minirocket_classification_report.txt`
+- `reports/models/pamap2_minirocket_confusion_matrix.csv`
+- `reports/models/pamap2_minirocket_confusion_matrix_raw.png`
+- `reports/models/pamap2_minirocket_confusion_matrix_normalized.png`
+- `models/pamap2/pamap2_minirocket_subject_split.joblib`
+
+Methodische Bedeutung:
+
+Die hohe Accuracy zeigt, dass die PAMAP2-Pipeline technisch und methodisch funktionsfähig ist. Parser, Cleaning, Segmentierung, HR-Interpolation, Imputation, Tensorisierung und Labeling erzeugen modellierbare Zeitreihenrepräsentationen. Damit steht die erste KI-Baseline der Bachelorarbeit auf einem neuen öffentlichen multimodalen Datensatz.
