@@ -23,3 +23,20 @@ Scientific role:
 - MiniRocket: reproducible baseline and comparison method
 - Dysbalance scores: explainable deviation layer
 - Anomaly detection: personalized abnormality detection layer
+
+## 2026-07-03: First new dataset
+
+Decision:
+
+PAMAP2 will be used as the first newly integrated dataset.
+
+Reason:
+
+PAMAP2 is suitable as the first Bachelor-thesis dataset because it combines physical activity, movement-related sensor data and heart-rate information. It is less complex than longitudinal real-world datasets and therefore well suited for validating the extended parser, tensorization and AI-based time-series pipeline.
+
+Scientific role:
+
+- first new dataset beyond the KI-Studienprojekt
+- functional physiological deviation modeling
+- activity and load-related time-series patterns
+- test case for MultiRocket and personalized dysbalance scores
