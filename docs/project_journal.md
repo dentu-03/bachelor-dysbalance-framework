@@ -501,3 +501,66 @@ Validierung:
 Methodische Bedeutung:
 
 Mit WESAD steht nun neben PAMAP2 ein zweiter vollständig tensorisierter Datensatz im Bachelor-Framework zur Verfügung. Während PAMAP2 den funktional-motorischen Analysepfad abbildet, repräsentiert WESAD den autonom-physiologischen Analysepfad. Damit wird die im Studienprojekt entwickelte multimodale Dysbalance-Idee systematisch in der Bachelorarbeit fortgeführt.
+
+## 2026-07-03 – WESAD MiniRocket Baselines und Standardisierungseffekt
+
+Für WESAD wurden erste MiniRocket-Baselines auf den segment-sicher erzeugten Chest-Tensoren trainiert.
+
+Aufgabe:
+
+- Klassifikation der Zustände baseline, stress, amusement und meditation
+- Input: WESAD Chest Tensoren
+- Tensorform: `(n_windows, 8, 7000)`
+- Modell: `MiniRocketClassifier`
+- Split: subject-wise
+
+Subject-wise Split:
+
+- Training: S2, S3, S4, S5, S6, S7, S8, S9, S10, S11
+- Test: S13, S14, S15, S16, S17
+
+Datenumfang:
+
+- Train shape: `(5909, 8, 7000)`
+- Test shape: `(2983, 8, 7000)`
+- Train NaNs: `0`
+- Test NaNs: `0`
+
+Baseline ohne Standardisierung:
+
+- Accuracy: `0.6433`
+- Macro F1: ca. `0.54`
+- Weighted F1: ca. `0.62`
+
+Baseline mit trainingsbasierter kanalweiser Standardisierung:
+
+- Accuracy: `0.7167`
+- Macro F1: ca. `0.66`
+- Weighted F1: ca. `0.71`
+
+Verbesserung:
+
+- Accuracy: +`0.0734`
+- Macro F1: +ca. `0.12`
+- Weighted F1: +ca. `0.09`
+
+Erzeugte lokale Artefakte:
+
+- `reports/models/wesad_minirocket_baseline_summary.json`
+- `reports/models/wesad_minirocket_classification_report.txt`
+- `reports/models/wesad_minirocket_confusion_matrix_raw.png`
+- `reports/models/wesad_minirocket_confusion_matrix_normalized.png`
+- `models/wesad/wesad_minirocket_subject_split.joblib`
+- `reports/models/wesad_minirocket_standardized_baseline_summary.json`
+- `reports/models/wesad_minirocket_standardized_classification_report.txt`
+- `reports/models/wesad_minirocket_standardized_confusion_matrix_raw.png`
+- `reports/models/wesad_minirocket_standardized_confusion_matrix_normalized.png`
+- `models/wesad/wesad_minirocket_standardized_subject_split.joblib`
+
+Bezug zum Studienprojekt:
+
+Im Studienprojekt wurde WESAD bereits mit ROCKET-basierten Methoden sehr erfolgreich klassifiziert. Die aktuelle Bachelor-Auswertung verwendet jedoch einen strengeren subject-wise Split und eine segment-sichere Tensorisierung. Dadurch ist das Ergebnis nicht direkt als schlechtere Leistung zu interpretieren, sondern als realistischere Generalisierungsprüfung über Personen hinweg.
+
+Methodische Bedeutung:
+
+Die Verbesserung durch kanalweise Standardisierung zeigt, dass WESAD stark durch Signal-Skalen und Personenunterschiede geprägt ist. Das unterstützt die zentrale Annahme der Bachelorarbeit: Für physiologische Biosignale reicht reine globale Klassifikation nicht aus. Personalisierte Normalisierung und erklärbare Abweichungsmodellierung sind notwendig, um robuste und interpretierbare Aussagen zu ermöglichen.
