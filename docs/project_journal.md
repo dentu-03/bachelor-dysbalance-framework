@@ -383,3 +383,57 @@ Erzeugte lokale Artefakte:
 Methodische Bedeutung:
 
 Die hohe Accuracy zeigt, dass die PAMAP2-Pipeline technisch und methodisch funktionsfähig ist. Parser, Cleaning, Segmentierung, HR-Interpolation, Imputation, Tensorisierung und Labeling erzeugen modellierbare Zeitreihenrepräsentationen. Damit steht die erste KI-Baseline der Bachelorarbeit auf einem neuen öffentlichen multimodalen Datensatz.
+
+## 2026-07-03 – PAMAP2 Functional Dysbalance Scores
+
+Auf Basis der PAMAP2-Tensoren wurden erste funktionale Bewegungsfeatures und daraus erklärbare Abweichungsscores berechnet.
+
+Implementierte Module:
+
+- `src/dysbalance/pamap2_movement_features.py`
+- `src/dysbalance/pamap2_functional_scores.py`
+- `src/dysbalance/plot_pamap2_functional_scores.py`
+
+Berechnete Bewegungsfeatures:
+
+- RMS der Beschleunigung pro Sensorposition
+- RMS der Gyroskopdaten pro Sensorposition
+- mittlere Extremitätenbewegung
+- Gesamtbewegungsintensität
+- Log-Ratio Extremitäten/Chest
+- Log-Ratio Hand/Ankle
+
+Erster Functional-Dysbalance-Score:
+
+Die drei Features
+
+- `total_acc_rms`
+- `log_extremity_chest_acc_ratio`
+- `log_hand_ankle_acc_ratio`
+
+wurden pro Subject und Aktivität z-normalisiert. Dadurch beschreibt der Score nicht einfach hohe Bewegung, sondern Abweichung von der individuellen Referenz innerhalb derselben Aktivität.
+
+Der aggregierte Score `functional_deviation_strength` ist der Mittelwert der absoluten z-Werte dieser drei Komponenten.
+
+Ergebnisse:
+
+- Score-Tabelle: `(7587, 26)`
+- Threshold-Report: `(272, 8)`
+- Subject-Summary: `(8, 12)`
+- NaNs: `0`
+- maximale Functional Deviation Strength: ca. `7.15`
+- Anteil `functional_deviation_strength > 2.0`: ca. `3.39 %` bis `4.40 %` je Subject
+
+Erzeugte lokale Artefakte:
+
+- `data/processed/pamap2/features/pamap2_movement_features.csv`
+- `data/processed/pamap2/dysbalance/pamap2_functional_scores.csv`
+- `reports/dysbalance/pamap2_movement_feature_summary.csv`
+- `reports/dysbalance/pamap2_functional_threshold_sweep.csv`
+- `reports/dysbalance/pamap2_functional_subject_summary.csv`
+- `reports/figures/pamap2_functional_deviation_by_subject.png`
+- `reports/figures/pamap2_functional_deviation_by_activity.png`
+
+Methodische Bedeutung:
+
+Damit wurde die Pipeline erstmals von reiner Aktivitätsklassifikation zu erklärbarer, personalisierter Abweichungsmodellierung erweitert. Das ist der zentrale Übergang vom Studienprojekt zur Bachelorarbeit: KI und Zeitreihenverarbeitung dienen nicht nur der Klassifikation, sondern der interpretierbaren Erkennung individueller physiologischer und funktionaler Abweichungsmuster.
