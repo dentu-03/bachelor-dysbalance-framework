@@ -2,8 +2,11 @@ import numpy as np
 import pandas as pd
 
 from src.project_paths import INTERIM_DATA_DIR, PROCESSED_DATA_DIR, REPORTS_DIR
-from src.tensorization.windowing import window_array, majority_labels, window_timestamps
 from src.preprocessing.imputation import impute_tensor_channel_median
+from src.tensorization.windowing import window_array, majority_labels, window_timestamps
+
+
+VALID_SUBJECT_IDS = ["101", "102", "103", "104", "105", "106", "107", "108"]
 
 
 SIGNAL_COLUMNS = [
@@ -45,8 +48,6 @@ def add_contiguous_segment_ids(
     A new segment starts when:
     - the timestamp gap is larger than expected for 100 Hz data
     - the activity label changes
-
-    This prevents windows from crossing removed transient periods or activities.
     """
     df = df.copy().reset_index(drop=True)
 
@@ -153,49 +154,86 @@ def tensorize_subject(
     return X, y, metadata
 
 
-def main() -> None:
-    subject_id = "101"
-    window_size = 500
-    step_size = 250
-
+def save_subject_tensor(
+    subject_id: str,
+    out_dir,
+    window_size: int = 500,
+    step_size: int = 250,
+) -> dict:
+    """Tensorize, impute and save one PAMAP2 subject."""
     X, y, metadata = tensorize_subject(
         subject_id=subject_id,
         window_size=window_size,
         step_size=step_size,
     )
 
-    out_dir = PROCESSED_DATA_DIR / "pamap2" / "single_subject"
-    out_dir.mkdir(parents=True, exist_ok=True)
-
+    nan_before = int(np.isnan(X).sum())
     X, channel_medians = impute_tensor_channel_median(X)
+    nan_after = int(np.isnan(X).sum())
 
     np.save(out_dir / f"X_subject{subject_id}.npy", X)
     np.save(out_dir / f"y_subject{subject_id}.npy", y)
     np.save(out_dir / f"channel_medians_subject{subject_id}.npy", channel_medians)
     metadata.to_csv(out_dir / f"metadata_subject{subject_id}.csv", index=False)
 
+    durations = metadata["timestamp_end"] - metadata["timestamp_start"]
+    label_counts = metadata["activity_id"].value_counts().sort_index()
+
+    return {
+        "subject_id": subject_id,
+        "n_windows": int(X.shape[0]),
+        "n_channels": int(X.shape[1]),
+        "n_timepoints": int(X.shape[2]),
+        "n_labels": int(label_counts.shape[0]),
+        "nan_before_imputation": nan_before,
+        "nan_after_imputation": nan_after,
+        "windows_longer_than_5_2_seconds": int((durations > 5.2).sum()),
+        "duration_min": float(durations.min()),
+        "duration_mean": float(durations.mean()),
+        "duration_max": float(durations.max()),
+        "label_counts": dict(label_counts),
+    }
+
+
+def main() -> None:
+    window_size = 500
+    step_size = 250
+
+    out_dir = PROCESSED_DATA_DIR / "pamap2" / "by_subject"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     report_dir = REPORTS_DIR / "datasets"
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    label_counts = metadata["activity_id"].value_counts().sort_index()
-    label_counts.to_csv(report_dir / f"pamap2_subject{subject_id}_window_label_counts.csv")
+    rows = []
 
-    durations = metadata["timestamp_end"] - metadata["timestamp_start"]
+    for subject_id in VALID_SUBJECT_IDS:
+        print(f"Tensorizing subject {subject_id} ...")
+        row = save_subject_tensor(
+            subject_id=subject_id,
+            out_dir=out_dir,
+            window_size=window_size,
+            step_size=step_size,
+        )
+        rows.append(row)
 
-    print(f"Subject: {subject_id}")
-    print(f"X shape: {X.shape}")
-    print(f"y shape: {y.shape}")
-    print(f"metadata shape: {metadata.shape}")
-    print(f"NaNs after imputation: {int(np.isnan(X).sum())}")
+        print(
+            f"  X shape: ({row['n_windows']}, {row['n_channels']}, {row['n_timepoints']}) | "
+            f"labels: {row['n_labels']} | "
+            f"NaNs after: {row['nan_after_imputation']} | "
+            f"long windows: {row['windows_longer_than_5_2_seconds']}"
+        )
+
+    summary = pd.DataFrame(rows)
+    summary_path = report_dir / "pamap2_tensorization_by_subject_summary.csv"
+    summary.to_csv(summary_path, index=False)
+
     print()
-    print("Window label counts:")
-    print(label_counts)
+    print("Tensorization summary:")
+    print(summary.drop(columns=["label_counts"]).to_string(index=False))
     print()
-    print("Window duration summary:")
-    print(durations.describe())
-    print()
-    print(f"Windows longer than 5.2 seconds: {(durations > 5.2).sum()}")
-    print(f"Saved tensor files to: {out_dir}")
+    print(f"Saved by-subject tensors to: {out_dir}")
+    print(f"Saved summary to: {summary_path}")
 
 
 if __name__ == "__main__":
