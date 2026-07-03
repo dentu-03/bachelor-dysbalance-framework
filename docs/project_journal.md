@@ -564,3 +564,88 @@ Im Studienprojekt wurde WESAD bereits mit ROCKET-basierten Methoden sehr erfolgr
 Methodische Bedeutung:
 
 Die Verbesserung durch kanalweise Standardisierung zeigt, dass WESAD stark durch Signal-Skalen und Personenunterschiede geprägt ist. Das unterstützt die zentrale Annahme der Bachelorarbeit: Für physiologische Biosignale reicht reine globale Klassifikation nicht aus. Personalisierte Normalisierung und erklärbare Abweichungsmodellierung sind notwendig, um robuste und interpretierbare Aussagen zu ermöglichen.
+
+## 2026-07-03 – WESAD Autonomic Dysbalance Score
+
+Auf Basis der segment-sicher erzeugten WESAD-Chest-Tensoren wurde ein autonom-physiologischer Dysbalance-Score umgesetzt.
+
+Verarbeitete Datengrundlage:
+
+- WESAD Chest Tensoren
+- 15 Subjekte
+- 8892 Fenster
+- 8 Kanäle
+- 7000 Samples pro Fenster
+- 10 Sekunden Fensterdauer
+- 50 % Überlappung
+- Zustände: baseline, stress, amusement, meditation
+
+Feature-Extraktion:
+
+Pro Fenster wurden erklärbare autonome Merkmale berechnet:
+
+- ECG: geschätzte Herzfrequenz, RMSSD, Peak-Anzahl
+- EDA: Mittelwert, Standardabweichung, Spannweite
+- Respiration: Mittelwert, Standardabweichung, Spannweite
+- Temperatur: Mittelwert, Standardabweichung
+- EMG: RMS
+- ACC: RMS
+
+Ergebnis der Feature-Berechnung:
+
+- Feature-Tabelle: `(8892, 20)`
+- Keine fehlenden Werte
+- Datei: `data/processed/wesad/features/wesad_autonomic_features.csv`
+
+Score-Definition:
+
+Der autonome Aktivierungsscore kombiniert subject-normalisierte Komponenten:
+
+- `z_hr_bpm`
+- `z_eda_mean`
+- `z_resp_std`
+- `z_inverse_rmssd`
+
+Dabei steht `z_inverse_rmssd = -z_rmssd_ms` für reduzierte parasympathische Regulation bei höherer Aktivierung.
+
+Zusätzlich wurde eine ungerichtete Abweichungsstärke berechnet:
+
+- `autonomic_deviation_strength`
+
+Ergebnis der Score-Berechnung:
+
+- Score-Tabelle: `(8892, 28)`
+- Datei: `data/processed/wesad/dysbalance/wesad_autonomic_scores.csv`
+
+Zentrale Ergebnisse nach Zustand:
+
+- baseline: mean z_autonomic_activation `-0.4932`
+- stress: mean z_autonomic_activation `1.3926`
+- amusement: mean z_autonomic_activation `-0.2430`
+- meditation: mean z_autonomic_activation `-0.3269`
+
+Anteil der Fenster mit `z_autonomic_activation > 2.0`:
+
+- baseline: `0.63 %`
+- stress: `18.07 %`
+- amusement: `0.82 %`
+- meditation: `0.13 %`
+
+Interpretation:
+
+Stress zeigt im WESAD-Datensatz eine deutlich erhöhte gerichtete autonome Aktivierung. Die ungerichtete Abweichungsstärke ist ebenfalls bei Stress am höchsten, unterscheidet sich aber weniger stark als die gerichtete Aktivierung. Dadurch wird Stress im Framework nicht nur klassifikatorisch, sondern auch über erklärbare physiologische Score-Komponenten sichtbar.
+
+Erzeugte lokale Artefakte:
+
+- `reports/dysbalance/wesad_autonomic_feature_summary.csv`
+- `reports/dysbalance/wesad_autonomic_label_summary.csv`
+- `reports/dysbalance/wesad_autonomic_subject_label_summary.csv`
+- `reports/dysbalance/wesad_autonomic_threshold_sweep.csv`
+- `reports/figures/wesad_autonomic_activation_by_condition.png`
+- `reports/figures/wesad_autonomic_deviation_strength_by_condition.png`
+- `reports/figures/wesad_autonomic_component_means_by_condition.png`
+- `docs/results/wesad_autonomic_dysbalance_summary.md`
+
+Wissenschaftliche Bedeutung:
+
+WESAD liefert damit eine zweite Domäne des Dysbalance-Frameworks. Zusammen mit PAMAP2 zeigt der aktuelle Stand, dass das Framework sowohl funktional-motorische als auch autonom-physiologische Abweichungen über personalisierte Normalisierung und erklärbare Score-Komponenten modellieren kann.
