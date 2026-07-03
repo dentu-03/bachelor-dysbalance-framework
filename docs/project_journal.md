@@ -296,3 +296,43 @@ Finale Validierung für Subject 101:
 Methodische Bedeutung:
 
 Damit ist der erste neue Datensatz der Bachelorarbeit bis zu einem modellbereiten, aeon-kompatiblen Tensor verarbeitet. Die Pipeline umfasst nun Rohdatenimport, Cleaning, Segmentierung, HR-Interpolation, Sliding Windowing, Majority-Labeling, Metadatenexport und NaN-Imputation.
+
+## 2026-07-03 – PAMAP2 By-Subject Tensorisierung abgeschlossen
+
+Die PAMAP2-Tensorisierung wurde von einem kontrollierten Einzeltest mit Subject 101 auf alle validen Subjects erweitert.
+
+Verarbeitete Subjects:
+
+- 101
+- 102
+- 103
+- 104
+- 105
+- 106
+- 107
+- 108
+
+Subject 109 bleibt für die erste robuste Pipeline-Iteration ausgeschlossen.
+
+Erzeugte lokale Artefakte:
+
+- `data/processed/pamap2/by_subject/X_subject*.npy`
+- `data/processed/pamap2/by_subject/y_subject*.npy`
+- `data/processed/pamap2/by_subject/metadata_subject*.csv`
+- `data/processed/pamap2/by_subject/channel_medians_subject*.npy`
+
+Validierung:
+
+- 8 X-Dateien
+- 8 y-Dateien
+- 8 Metadaten-Dateien
+- 8 Kanal-Median-Dateien
+- Gesamtzahl Fenster: `7587`
+- Tensorform pro Subject: `(n_windows, 19, 500)`
+- NaNs nach Imputation: `0`
+- Fenster länger als 5.2 Sekunden: `0`
+- Gesamtgröße der by-subject Artefakte: ca. `551 MB`
+
+Methodische Bedeutung:
+
+PAMAP2 ist damit als erster neuer multimodaler Datensatz vollständig bis zu modellbereiten, aeon-kompatiblen Zeitreihentensoren verarbeitet. Die Pipeline ist reproduzierbar, segment-sicher, dokumentiert und für erste MultiRocket- oder MiniRocket-Baseline-Experimente vorbereitet.
