@@ -3,6 +3,7 @@ import pandas as pd
 
 from src.project_paths import INTERIM_DATA_DIR, PROCESSED_DATA_DIR, REPORTS_DIR
 from src.tensorization.windowing import window_array, majority_labels, window_timestamps
+from src.preprocessing.imputation import impute_tensor_channel_median
 
 
 SIGNAL_COLUMNS = [
@@ -166,8 +167,11 @@ def main() -> None:
     out_dir = PROCESSED_DATA_DIR / "pamap2" / "single_subject"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    X, channel_medians = impute_tensor_channel_median(X)
+
     np.save(out_dir / f"X_subject{subject_id}.npy", X)
     np.save(out_dir / f"y_subject{subject_id}.npy", y)
+    np.save(out_dir / f"channel_medians_subject{subject_id}.npy", channel_medians)
     metadata.to_csv(out_dir / f"metadata_subject{subject_id}.csv", index=False)
 
     report_dir = REPORTS_DIR / "datasets"
@@ -182,6 +186,7 @@ def main() -> None:
     print(f"X shape: {X.shape}")
     print(f"y shape: {y.shape}")
     print(f"metadata shape: {metadata.shape}")
+    print(f"NaNs after imputation: {int(np.isnan(X).sum())}")
     print()
     print("Window label counts:")
     print(label_counts)
