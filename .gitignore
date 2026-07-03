@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/raw/
+data/interim/
+data/processed/
+data/external/
+
+# Models and reports
+models/
+reports/
+
+# Metadata outputs
+metadata/*.sqlite
+metadata/*.db
+metadata/*.csv
+
+# System / editor
+.DS_Store
+.vscode/
+.idea/
