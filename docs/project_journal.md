@@ -268,3 +268,31 @@ Finales Ergebnis für Subject 101:
 Methodische Bedeutung:
 
 Dieser Schritt ist zentral für die wissenschaftliche Qualität der Pipeline. Er verhindert, dass künstliche Fenster über entfernte oder physiologisch nicht zusammenhängende Zeitbereiche entstehen. Damit ist die erste PAMAP2-Tensorisierung reproduzierbar und methodisch vertretbar.
+
+## 2026-07-03 – PAMAP2 Tensor Imputation und finaler Subject-101-Tensor
+
+Für die PAMAP2-Tensorisierung wurde ein allgemeines Imputation-Modul implementiert:
+
+- `src/preprocessing/imputation.py`
+
+Die Imputation ersetzt NaN-Werte in 3D-Zeitreihentensoren kanalweise durch den jeweiligen Kanal-Median. Falls ein Kanal vollständig aus NaN-Werten bestehen sollte, wird ein definierter Fallback-Wert verwendet.
+
+Das PAMAP2-Tensorisierungsskript speichert nun zusätzlich:
+
+- `X_subject101.npy`
+- `y_subject101.npy`
+- `metadata_subject101.csv`
+- `channel_medians_subject101.npy`
+
+Finale Validierung für Subject 101:
+
+- `X shape`: `(979, 19, 500)`
+- `y shape`: `(979,)`
+- `metadata shape`: `(979, 9)`
+- `overall_nan_pct`: `0.0`
+- Fenster länger als 5.2 Sekunden: `0`
+- Anzahl Aktivitätsklassen: `12`
+
+Methodische Bedeutung:
+
+Damit ist der erste neue Datensatz der Bachelorarbeit bis zu einem modellbereiten, aeon-kompatiblen Tensor verarbeitet. Die Pipeline umfasst nun Rohdatenimport, Cleaning, Segmentierung, HR-Interpolation, Sliding Windowing, Majority-Labeling, Metadatenexport und NaN-Imputation.
