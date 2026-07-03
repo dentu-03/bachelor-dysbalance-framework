@@ -119,3 +119,32 @@ Abgebildete Methodik:
 Erkenntnis:
 
 Damit ist der Übergang vom alten POC-Code zu einer wiederverwendbaren Framework-Logik begonnen. Die Bachelorarbeit erhält dadurch eine klarere methodische Struktur als das Studienprojekt.
+
+## 2026-07-03 – PAMAP2 Protocol Parser und Erstinspektion
+
+Der erste neue Datensatz der Bachelorarbeit, PAMAP2, wurde als Protocol-Datensatz initial eingelesen.
+
+Implementiertes Modul:
+
+- `src/parsers/parse_pamap2.py`
+
+Der Parser benennt die offiziellen 54 PAMAP2-Spalten und ergänzt zusätzlich eine `subject_id`-Spalte. Dadurch entstehen beim geladenen DataFrame 55 Spalten.
+
+Ergebnis der Erstinspektion:
+
+- 9 Protocol-Dateien wurden erkannt.
+- Die meisten Subjects besitzen mehrere hunderttausend Samples.
+- `subject109.dat` ist deutlich kürzer und enthält nur die Aktivitätslabels 0 und 24.
+- Die Herzfrequenzspalte weist ca. 90.8 Prozent fehlende Werte auf.
+- Dieses Verhalten ist plausibel, da die IMU-Signale mit höherer Frequenz vorliegen als die Herzfrequenz.
+
+Wissenschaftliche Bedeutung:
+
+PAMAP2 ist damit als erster neuer multimodaler Datensatz technisch angebunden. Die Analyse bestätigt außerdem eine wichtige methodische Herausforderung der Bachelorarbeit: unterschiedliche Abtastraten und fehlende Werte zwischen Modalitäten müssen systematisch behandelt werden.
+
+Nächste Schritte:
+
+- Aktivitätslabels dokumentieren
+- relevante IMU- und HR-Kanäle auswählen
+- Cleaning-Strategie definieren
+- Fensterung und Tensorisierung vorbereiten
