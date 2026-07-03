@@ -148,3 +148,27 @@ Nächste Schritte:
 - relevante IMU- und HR-Kanäle auswählen
 - Cleaning-Strategie definieren
 - Fensterung und Tensorisierung vorbereiten
+
+## 2026-07-03 – PAMAP2 Initial Cleaning Summary
+
+Für PAMAP2 wurde ein erstes Cleaning-Summary-Skript implementiert:
+
+- `src/preprocessing/clean_pamap2.py`
+
+Das Skript setzt die zuvor dokumentierte Cleaning-Strategie praktisch um:
+
+- Auswahl von 22 erklärbaren Startspalten
+- Ausschluss von Aktivitätslabel `0`
+- Ausschluss von Subject `109` für die erste robuste Pipeline-Iteration
+- Erzeugung eines lokalen Summary-Artefakts unter `reports/datasets/pamap2_initial_cleaning_summary.csv`
+
+Ergebnis:
+
+- Für Subjects 101–108 bleiben jeweils ca. 174k bis 272k Samples erhalten.
+- Subject 109 wird erwartungsgemäß vollständig aus der ersten Pipeline ausgeschlossen.
+- Die Herzfrequenz-Missingness bleibt bei ca. 90.8 Prozent.
+- Das bestätigt, dass HR nicht zeilenweise naiv behandelt werden darf, sondern später über eine eigene Resampling-/Imputationsstrategie integriert werden muss.
+
+Methodische Bedeutung:
+
+Dieser Schritt trennt Rohdateninspektion von echter Modellvorbereitung. Dadurch bleibt nachvollziehbar, welche Daten aus methodischen Gründen ausgeschlossen wurden und welche Modalitäten in der ersten Framework-Iteration verwendet werden.
