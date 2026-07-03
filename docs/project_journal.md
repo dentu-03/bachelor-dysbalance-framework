@@ -71,3 +71,22 @@ Die POCs enthalten die methodisch wichtigsten Bausteine für die Bachelorarbeit:
 Entscheidung:
 
 Die Logik wird nicht 1:1 übernommen, sondern in allgemeine Framework-Module überführt. Dadurch wird das neue Bachelor-Projekt sauberer, wiederverwendbarer und wissenschaftlich besser dokumentierbar.
+
+## 2026-07-03 – Artifact-Strategie festgelegt
+
+Es wurde entschieden, dass das Bachelorprojekt systematisch wissenschaftliche Artefakte erzeugen soll.
+
+Ziel ist nicht nur lauffähiger Code, sondern eine reproduzierbare Sammlung aus:
+
+- Tabellen
+- Reports
+- Metriken
+- Grafiken
+- Confusion Matrices
+- Score-Verteilungen
+- Threshold-Sweeps
+- longitudinalen Trendplots
+- GUI-Screenshots
+- Paper-/Thesis-Figures
+
+Diese Artefakte sollen die spätere Bachelorarbeit, Präsentation und mögliche Paper-Struktur visuell und wissenschaftlich stärken.
