@@ -90,3 +90,32 @@ Ziel ist nicht nur lauffähiger Code, sondern eine reproduzierbare Sammlung aus:
 - Paper-/Thesis-Figures
 
 Diese Artefakte sollen die spätere Bachelorarbeit, Präsentation und mögliche Paper-Struktur visuell und wissenschaftlich stärken.
+
+## 2026-07-03 – Erste generalisierte Dysbalance-Module implementiert
+
+Aus den Phase-2-Proof-of-Concepts des Studienprojekts wurden die zentralen methodischen Bausteine nicht direkt kopiert, sondern als allgemeine Framework-Module neu aufgebaut.
+
+Implementierte Module:
+
+- `src/dysbalance/normalization.py`
+- `src/dysbalance/ratios.py`
+- `src/dysbalance/thresholds.py`
+
+Wissenschaftliche Bedeutung:
+
+Diese Module bilden die erste stabile Grundlage für die erklärbare Dysbalance-Analyse der Bachelorarbeit.
+
+Abgebildete Methodik:
+
+1. Log-Ratio-Transformation  
+   Verhältnisse werden symmetrisch modelliert. Verdopplung und Halbierung erhalten denselben Abstand mit unterschiedlichem Vorzeichen.
+
+2. Personalisierte Z-Normierung  
+   Werte werden relativ zum individuellen Referenzzustand einer Person oder Gruppe bewertet.
+
+3. Threshold-Sweep  
+   Auffälligkeiten werden nicht nur bei einem einzelnen Grenzwert betrachtet, sondern über mehrere Schwellenwerte robust ausgewertet.
+
+Erkenntnis:
+
+Damit ist der Übergang vom alten POC-Code zu einer wiederverwendbaren Framework-Logik begonnen. Die Bachelorarbeit erhält dadurch eine klarere methodische Struktur als das Studienprojekt.
