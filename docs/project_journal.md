@@ -200,3 +200,24 @@ Validierung:
 Methodische Bedeutung:
 
 Damit ist PAMAP2 als erster neuer Datensatz nicht nur theoretisch ausgewählt, sondern praktisch in eine reproduzierbare Zwischenrepräsentation überführt. Dieser Zustand bildet die direkte Grundlage für Fensterung, Tensorisierung und spätere MultiRocket-Experimente.
+
+## 2026-07-03 – Reusable Sliding Window Utilities
+
+Ein allgemeines Windowing-Modul wurde implementiert:
+
+- `src/tensorization/windowing.py`
+
+Das Modul stellt wiederverwendbare Funktionen bereit für:
+
+- Berechnung gültiger Sliding-Window-Startindizes
+- Umwandlung von 2D-Zeitreihen in aeon-kompatible Tensoren
+- Majority-Labeling pro Fenster
+- Start- und Endzeitpunkte pro Fenster
+
+Die erzeugte Tensorform entspricht dem in Studienprojekt und Bachelorarbeit verwendeten Standard:
+
+`(n_windows, n_channels, n_timepoints)`
+
+Methodische Bedeutung:
+
+Damit wurde ein bisher nur implizit oder POC-artig vorhandener Bestandteil des Studienprojekts als saubere, wiederverwendbare Framework-Komponente neu implementiert. Dieses Modul bildet die Grundlage für die PAMAP2-Tensorisierung und spätere datasetübergreifende Verarbeitung.
