@@ -52,3 +52,22 @@ Zu übernehmende Konzepte:
 - Dysbalance-Scores
 - multimodale Score-Fusion
 - Reports und Metadaten
+
+## 2026-07-03 – Sichtung der Phase-2-Dysbalance-POCs
+
+Die alten POCs für EMG- und Stress-Dysbalance wurden geprüft.
+
+Erkenntnis:
+
+Die POCs enthalten die methodisch wichtigsten Bausteine für die Bachelorarbeit:
+
+- Log-Ratio-basierte Dysbalance-Metriken
+- personalisierte Z-Normierung
+- Threshold-Sweeps
+- Subjekt-bezogene Auswertung
+- erklärbare Score-Logik
+- CSV-/Report-Ausgabe
+
+Entscheidung:
+
+Die Logik wird nicht 1:1 übernommen, sondern in allgemeine Framework-Module überführt. Dadurch wird das neue Bachelor-Projekt sauberer, wiederverwendbarer und wissenschaftlich besser dokumentierbar.
