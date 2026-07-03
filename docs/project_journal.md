@@ -221,3 +221,50 @@ Die erzeugte Tensorform entspricht dem in Studienprojekt und Bachelorarbeit verw
 Methodische Bedeutung:
 
 Damit wurde ein bisher nur implizit oder POC-artig vorhandener Bestandteil des Studienprojekts als saubere, wiederverwendbare Framework-Komponente neu implementiert. Dieses Modul bildet die Grundlage für die PAMAP2-Tensorisierung und spätere datasetübergreifende Verarbeitung.
+
+## 2026-07-03 – Segment-sichere PAMAP2-Tensorisierung
+
+Für PAMAP2 wurde eine erste konkrete Tensorisierung implementiert:
+
+- `src/tensorization/tensorize_pamap2.py`
+
+Zunächst wurde Subject 101 als kontrollierter Einzeltest tensorisiert.
+
+Einstellungen:
+
+- Fenstergröße: 500 Samples
+- Schrittweite: 250 Samples
+- angenommene Samplingrate: 100 Hz
+- Fensterdauer: ca. 5 Sekunden
+- Overlap: 50 Prozent
+- Tensorform: `(n_windows, n_channels, n_timepoints)`
+
+Erster naiver Versuch:
+
+- 998 Fenster
+- 20 Fenster liefen über große Zeitlücken
+- maximale Fensterdauer: ca. 245 Sekunden
+
+Problem:
+
+Nach Entfernung von Label `0` entstehen Zeitlücken. Wenn danach naiv über den bereinigten DataFrame gefenstert wird, können Fenster über entfernte transiente Phasen oder Aktivitätswechsel laufen. Das ist methodisch unsauber.
+
+Korrektur:
+
+Die Tensorisierung wurde segment-sicher gemacht. Neue Segmente entstehen bei:
+
+- Zeitlücke größer als 0.05 Sekunden
+- Aktivitätswechsel
+
+Heart Rate wird nur innerhalb solcher Segmente interpoliert.
+
+Finales Ergebnis für Subject 101:
+
+- `X shape`: `(979, 19, 500)`
+- `y shape`: `(979,)`
+- `metadata shape`: `(979, 9)`
+- Fenster länger als 5.2 Sekunden: `0`
+
+Methodische Bedeutung:
+
+Dieser Schritt ist zentral für die wissenschaftliche Qualität der Pipeline. Er verhindert, dass künstliche Fenster über entfernte oder physiologisch nicht zusammenhängende Zeitbereiche entstehen. Damit ist die erste PAMAP2-Tensorisierung reproduzierbar und methodisch vertretbar.
