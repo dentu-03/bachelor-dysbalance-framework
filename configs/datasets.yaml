@@ -1,0 +1,34 @@
+# Dataset configuration for the Bachelor Dysbalance Framework
+
+datasets:
+  wesad:
+    role: "reference_from_study_project"
+    status: "planned"
+    description: "Reference dataset for autonomous dysbalance and stress-related biosignals."
+    raw_path: "data/raw/wesad"
+    interim_path: "data/interim/wesad"
+    processed_path: "data/processed/wesad"
+
+  pamap2:
+    role: "primary_new_dataset"
+    status: "planned"
+    description: "Physical activity monitoring dataset for movement, activity and functional physiological deviations."
+    raw_path: "data/raw/pamap2"
+    interim_path: "data/interim/pamap2"
+    processed_path: "data/processed/pamap2"
+
+  mhealth:
+    role: "secondary_validation_dataset"
+    status: "planned"
+    description: "Multimodal mobile health dataset for validation of the tensorization and dysbalance framework."
+    raw_path: "data/raw/mhealth"
+    interim_path: "data/interim/mhealth"
+    processed_path: "data/processed/mhealth"
+
+  tiles2018:
+    role: "longitudinal_candidate"
+    status: "candidate"
+    description: "Longitudinal physiological and behavioral dataset for testing the Longitudinal Dysbalance Memory concept."
+    raw_path: "data/raw/tiles2018"
+    interim_path: "data/interim/tiles2018"
+    processed_path: "data/processed/tiles2018"
