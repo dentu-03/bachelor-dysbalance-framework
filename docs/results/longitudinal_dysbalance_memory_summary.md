@@ -1,262 +1,320 @@
 # Longitudinal Dysbalance Memory Summary
 
+Dieses Dokument beschreibt den aktuellen Stand des Longitudinal Dysbalance Memory. Die Memory-Schicht überführt Fenster-basierte Dysbalance- und Anomaly-Ergebnisse in eine höhere Struktur aus Events, Episoden und Hypothesen.
+
+Der aktuelle Stand integriert:
+
+- PAMAP2
+- WESAD
+- MHEALTH
+
+Alle drei Datensätze werden weiterhin als kontrollierte Sequenzdaten interpretiert. Es wird keine echte longitudinale Evidenz behauptet.
+
 ## Rolle im Framework
 
-Das Longitudinal Dysbalance Memory ist ein Framework-Baustein zur strukturierten Weiterverarbeitung von Dysbalance- und Anomaly-Ergebnissen.
+Das Longitudinal Dysbalance Memory bildet die Brücke zwischen einzelnen auffälligen Fenstern und einer späteren longitudinalen Beobachtung.
 
-Es transformiert einzelne auffällige Fenster in interpretierbare Verlaufseinheiten:
+Die Pipeline lautet:
 
-Window → Event → Episode → Hypothesis
+1. Window-level Dysbalance Scores
+2. Window-level Anomaly Detection
+3. Dysbalance Events
+4. Dysbalance Episodes
+5. Subject-specific Dysbalance Hypotheses
+6. Evidence Scope und Status-Interpretation
 
-Damit wird der Schritt von einer punktuellen Fensteranalyse zu einer verlaufsfähigen Hypothesenstruktur vorbereitet.
-
-Wichtig:
-
-Das Memory-Modul ist kein diagnostisches System. Es erzeugt Framework-Hypothesen über wiederkehrende oder starke Abweichungsmuster. Diese Hypothesen müssen kontextuell interpretiert werden und sind keine medizinischen Aussagen.
+Damit ist die Memory-Schicht ein vorbereitender Framework-Baustein für spätere Langzeitdaten und Pilotmessungen.
 
 ## Motivation
 
-Die bisherigen Framework-Schritte erzeugen Scores und Anomaly-Flags auf Fensterebene:
+Ein einzelnes auffälliges Fenster ist nur begrenzt aussagekräftig. Erst wenn Auffälligkeiten wiederholt auftreten, zeitlich gruppiert sind oder in ähnlichen Kontexten erscheinen, entsteht eine Hypothese über ein mögliches wiederkehrendes Muster.
 
-- PAMAP2: funktional-motorische Dysbalance
-- WESAD: autonom-physiologische Dysbalance
-- Isolation Forest: modellbasierte Anomaly Scores
-
-Ein einzelnes auffälliges Fenster reicht jedoch nicht aus, um von einem stabilen Muster zu sprechen. Einzelne Auffälligkeiten können durch Sensorrauschen, Übergänge, kurze Bewegungsartefakte oder normale physiologische Variabilität entstehen.
-
-Das Memory-Modul reduziert diese Gefahr, indem es Auffälligkeiten über mehrere Ebenen aggregiert:
-
-1. auffälliges Fenster
-2. Dysbalance Event
-3. zusammenhängende Episode
-4. subject-spezifische Hypothese
+Das Memory-System dient deshalb nicht der Diagnose, sondern der strukturierten Verwaltung von Auffälligkeitshypothesen.
 
 ## Eingabedaten
 
-Die erste Implementierung nutzt die bereits erzeugten Isolation-Forest-Ausgaben für PAMAP2 und WESAD.
+Aktuell werden drei Anomaly-Ausgaben verwendet:
 
-Verwendete Einstellung:
+| Dataset | Input | Feature Set | Contamination |
+|---|---|---|---:|
+| PAMAP2 | `reports/anomaly/pamap2_isolation_forest_anomaly_scores.csv` | `component_level` | 0.05 |
+| WESAD | `reports/anomaly/wesad_isolation_forest_anomaly_scores.csv` | `component_level` | 0.05 |
+| MHEALTH | `reports/anomaly/mhealth/mhealth_isolation_forest_predictions.csv` | `movement_component_level` | 0.05 |
 
-- Feature-Ebene: `component_level`
-- Contamination: `0.05`
-- maximale Fensterlücke für Episodenbildung: `2`
-
-Eingaben:
-
-- `reports/anomaly/pamap2_isolation_forest_anomaly_scores.csv`
-- `reports/anomaly/wesad_isolation_forest_anomaly_scores.csv`
+Die Feature-Set-Unterscheidung ist wichtig, weil MHEALTH eine eigene Anomaly-Datei mit anderen Spaltennamen besitzt. MHEALTH verwendet `is_anomaly` statt `is_model_anomaly` und besitzt keine `anomaly_score_z` oder `anomaly_rank_percent`-Spalten.
 
 ## Event-Regeln
 
 ### PAMAP2
 
-Ein PAMAP2-Fenster wird zu einem Event, wenn mindestens eine der folgenden Bedingungen gilt:
+PAMAP2-Events entstehen aus:
 
 - `functional_deviation_strength >= 2.0`
-- `is_model_anomaly == True`
-- `anomaly_rank_percent >= 95`
+- modellbasierter Anomaly Detection
+- hoher Anomaly-Rank-Position
 
-Event-Typen:
+Mögliche Event-Typen:
 
+- `combined_score_model_event`
 - `functional_motor_deviation`
 - `model_anomaly`
-- `combined_score_model_event`
 - `high_rank_anomaly`
 
 ### WESAD
 
-Für WESAD werden zwei autonome Perspektiven unterschieden:
-
-1. gerichtete autonome Aktivierung
-2. ungerichtete autonome Abweichungsstärke
-
-Ein autonomes Aktivierungs-Event entsteht bei:
+WESAD-Events entstehen aus:
 
 - `z_autonomic_activation >= 2.0`
-
-Ein autonomes Abweichungs-Event entsteht bei mindestens einer der folgenden Bedingungen:
-
 - `autonomic_deviation_strength >= 1.5`
-- `is_model_anomaly == True`
-- `anomaly_rank_percent >= 95`
+- modellbasierter Anomaly Detection
+- hoher Anomaly-Rank-Position
 
-Event-Typen:
+Mögliche Event-Typen:
 
 - `autonomic_activation`
 - `autonomic_deviation`
-- `model_anomaly`
 - `combined_score_model_event`
+- `model_anomaly`
 - `high_rank_anomaly`
+
+### MHEALTH
+
+MHEALTH-Events entstehen aus:
+
+- `functional_deviation_strength >= 2.0`
+- modellbasierter Anomaly Detection auf `movement_component_level`
+
+Mögliche Event-Typen:
+
+- `combined_score_model_event`
+- `functional_motor_deviation`
+- `model_anomaly`
+
+MHEALTH wird funktional-motorisch interpretiert. Die ECG-Komponente bleibt ein konservatives Zusatzsignal und wird nicht klinisch interpretiert.
 
 ## Episodenbildung
 
-Events werden zu Episoden gruppiert nach:
+Events werden zu Episoden gruppiert, wenn sie innerhalb desselben Kontexts nah beieinander liegen.
+
+Gruppierungskriterien:
 
 - Dataset
 - Domain
 - Subject
 - Session
 - Event-Typ
-- Kontext
+- Context Name
 
-Innerhalb dieser Gruppen werden nahe beieinanderliegende Events zusammengefasst.
+Zusätzlich gilt:
 
-Initiale Regel:
+| Parameter | Wert |
+|---|---:|
+| `MAX_GAP_WINDOWS` | 2 |
 
-- maximale Lücke: `2` Fenster
-
-Für PAMAP2 und WESAD ist diese Episodenbildung ein kontrollierter Schema-Test auf Fenstersequenzen. Für TILES-2018 soll dieselbe Logik später auf echte Tages- oder Session-Verläufe übertragen werden.
+Das bedeutet: Events desselben Typs und Kontexts werden zu einer Episode verbunden, wenn zwischen ihren Fensterindizes höchstens zwei Fenster Abstand liegen.
 
 ## Hypothesenbildung
 
-Aus Episoden werden subject-spezifische Hypothesen gebildet.
+Episoden werden zu subject-spezifischen Hypothesen aggregiert.
 
-Eine Hypothese fasst zusammen:
+Gruppierungskriterien:
 
 - Dataset
-- Subject
 - Domain
+- Subject
 - Event-Typ
-- Kontext
+- Context Name
+
+Für jede Hypothese werden unter anderem gespeichert:
+
 - Anzahl Episoden
-- erste und letzte Beobachtung
-- mittlere und maximale Episodenstärke
-- aktuellen Status
-- Evidenzzusammenfassung
+- erste Beobachtung
+- letzte Beobachtung
+- mittlere Episodenstärke
+- maximale Episodenstärke
+- Wiederholungszahl
+- aktueller Status
+- Evidence Scope
+- Interpretationshinweis
+- Limitationshinweis
 
-Statuswerte:
+## Statuslogik
 
-- `new`
-- `observed`
-- `confirmed`
-- `stable`
-- `weakened`
-- `discarded`
+Die aktuelle Statuslogik ist framework-intern:
 
-In der aktuellen Implementierung treten auf PAMAP2 und WESAD nur `new`, `observed` und `confirmed` auf.
+| Status | Regel |
+|---|---|
+| `new` | einzelne schwächere Episode |
+| `observed` | zwei Episoden oder starke Einzelepisode |
+| `confirmed` | mindestens drei Episoden |
 
-Wichtig:
-
-`confirmed` bedeutet hier nur, dass eine Hypothese innerhalb des Framework-Schemas wiederholt oder stark beobachtet wurde. Es bedeutet keine medizinische oder klinische Bestätigung.
+Diese Statuswerte sind keine klinischen Bestätigungen. Sie dienen nur der internen Priorisierung von Hypothesen.
 
 ## Overclaiming-Schutz
 
-Da PAMAP2 und WESAD keine echten mehrwöchigen Longitudinaldatensätze sind, enthält jede Hypothese zusätzliche Felder:
+Alle aktuellen PAMAP2-, WESAD- und MHEALTH-Hypothesen erhalten:
 
-- `evidence_scope`
-- `is_true_longitudinal_evidence`
-- `status_interpretation`
+| Feld | Wert |
+|---|---|
+| `evidence_scope` | `controlled_window_sequence` |
+| `is_true_longitudinal_evidence` | `False` |
 
-Für PAMAP2 und WESAD gilt:
+Damit bleibt klar: Die aktuellen Ergebnisse sind longitudinal-ready, aber noch keine echten longitudinalen Befunde.
 
-- `evidence_scope = controlled_window_sequence`
-- `is_true_longitudinal_evidence = False`
+Echte longitudinale Evidenz wäre erst mit alltagsnahen Langzeitdaten oder Pilotdaten möglich.
 
-Damit wird explizit dokumentiert, dass die aktuelle Memory-Anwendung ein kontrollierter Schema-Test ist.
+## Aktuelle Gesamtergebnisse
 
-Echte longitudinale Evidenz soll später über TILES-2018 entstehen.
-
-## Ergebnisse
-
-Die erste Memory-Auswertung erzeugte:
-
-| Ebene | Anzahl |
+| Größe | Wert |
 |---|---:|
-| Events | 1316 |
-| Episodes | 686 |
-| Hypotheses | 249 |
+| Events | 1,444 |
+| Episodes | 799 |
+| Hypotheses | 340 |
+| True longitudinal hypotheses | 0 |
 
-### Events nach Datensatz
+## Events nach Datensatz
 
 | Dataset | Events |
 |---|---:|
 | WESAD | 934 |
 | PAMAP2 | 382 |
+| MHEALTH | 128 |
 
-### Episoden nach Datensatz
+## Episoden nach Datensatz
 
 | Dataset | Episodes |
 |---|---:|
 | WESAD | 448 |
 | PAMAP2 | 238 |
+| MHEALTH | 113 |
 
-### Hypothesen nach Datensatz
+## Hypothesen nach Datensatz
 
 | Dataset | Hypotheses |
 |---|---:|
 | PAMAP2 | 132 |
 | WESAD | 117 |
+| MHEALTH | 91 |
 
-### Hypothesenstatus nach Datensatz
+## Hypothesenstatus
 
-| Dataset | confirmed | observed | new |
-|---|---:|---:|---:|
-| PAMAP2 | 25 | 107 | 0 |
-| WESAD | 62 | 51 | 4 |
-
-### Hypothesentypen nach Datensatz
-
-| Dataset | autonomic_activation | autonomic_deviation | combined_score_model_event | functional_motor_deviation | model_anomaly |
-|---|---:|---:|---:|---:|---:|
-| PAMAP2 | 0 | 0 | 83 | 2 | 47 |
-| WESAD | 23 | 13 | 38 | 0 | 43 |
-
-### Events nach Typ
-
-| Event-Typ | Anzahl |
+| Status | Count |
 |---|---:|
-| combined_score_model_event | 602 |
+| observed | 191 |
+| confirmed | 88 |
+| new | 61 |
+
+## Events nach Typ
+
+| Event Type | Count |
+|---|---:|
+| combined_score_model_event | 615 |
 | autonomic_activation | 391 |
-| model_anomaly | 223 |
+| model_anomaly | 338 |
 | autonomic_deviation | 98 |
 | functional_motor_deviation | 2 |
 
+## Episoden nach Typ
+
+| Event Type | Count |
+|---|---:|
+| combined_score_model_event | 319 |
+| model_anomaly | 270 |
+| autonomic_activation | 144 |
+| autonomic_deviation | 64 |
+| functional_motor_deviation | 2 |
+
+## Hypothesen nach Typ
+
+| Event Type | Count |
+|---|---:|
+| model_anomaly | 168 |
+| combined_score_model_event | 134 |
+| autonomic_activation | 23 |
+| autonomic_deviation | 13 |
+| functional_motor_deviation | 2 |
+
+## MHEALTH-Erweiterung
+
+Die Integration von MHEALTH erweitert das Memory um eine externe funktional-motorische Validierungsebene.
+
+MHEALTH trägt bei:
+
+| Größe | Wert |
+|---|---:|
+| Events | 128 |
+| Episodes | 113 |
+| Hypotheses | 91 |
+
+MHEALTH-Events bestehen aus:
+
+| Event Type | Count |
+|---|---:|
+| model_anomaly | 115 |
+| combined_score_model_event | 13 |
+
+MHEALTH-Hypothesenstatus:
+
+| Status | Count |
+|---|---:|
+| new | 57 |
+| observed | 33 |
+| confirmed | 1 |
+
+Die eine bestätigte MHEALTH-Hypothese ist framework-intern zu verstehen. Sie zeigt wiederkehrende kontrollierte Sequenzauffälligkeit, aber keine echte longitudinale oder klinische Bestätigung.
+
 ## Interpretation
 
-Die Ergebnisse zeigen, dass aus den vorhandenen Score- und Anomaly-Ausgaben eine strukturierte Memory-Schicht erzeugt werden kann.
+Die Memory-Erweiterung zeigt, dass sich mehrere Datensätze in eine gemeinsame Ereignis- und Hypothesenstruktur überführen lassen.
 
-Bei PAMAP2 entstehen viele `combined_score_model_event`-Hypothesen. Das passt zur vorherigen Overlap- und Korrelationsanalyse: Der funktionale Dysbalance-Score und der Isolation-Forest-Anomaly-Score stimmen bei PAMAP2 sehr stark überein.
+PAMAP2 liefert funktional-motorische Bewegungsauffälligkeiten.
 
-Bei WESAD ist das Bild differenzierter. Es entstehen Hypothesen für:
+WESAD liefert autonom-physiologische Auffälligkeiten.
 
-- gerichtete autonome Aktivierung
-- ungerichtete autonome Abweichung
-- kombinierte Score-Modell-Evidenz
-- reine Modell-Anomalien
+MHEALTH liefert eine externe funktional-motorische Transferprüfung mit Chest-, Arm-, Ankle- und ECG-Signalen.
 
-Das bestätigt erneut, dass WESAD nicht nur als Stress-vs-Nicht-Stress-Problem interpretiert werden sollte. Das Framework unterscheidet zwischen gerichteter Aktivierung und allgemeiner autonomer Auffälligkeit.
+Gemeinsam zeigen die drei Datensätze:
+
+- Window Scores lassen sich in Events überführen.
+- Events lassen sich zu Episoden gruppieren.
+- Episoden lassen sich zu Subject-Hypothesen aggregieren.
+- Die Hypothesen bleiben durch `evidence_scope` begrenzt.
+- Das Framework ist bereit für echte longitudinale Daten.
 
 ## Bedeutung für TILES-2018
 
-Das Memory-Modul wurde bewusst so entworfen, dass TILES-2018 später anschließen kann.
+TILES bleibt die wichtigste öffentliche Option für echte longitudinale Evidenz.
 
-PAMAP2 und WESAD dienen aktuell als Schema-Test:
+Mögliche spätere TILES-Struktur:
 
-- Fenster werden zu Events.
-- Events werden zu Episoden.
-- Episoden werden zu Hypothesen.
-
-TILES soll anschließend echte longitudinale Evidenz liefern:
-
+- `dataset = tiles2018`
+- `evidence_scope = longitudinal_real_world_sequence`
 - subject-day events
 - mehrtägige Episoden
 - wiederkehrende Muster über Wochen
-- Statusänderungen wie stable oder weakened
+- Statusänderungen wie `stable`, `weakened` oder `discarded`
 
-Damit wird TILES nicht als weiterer isolierter Datensatz behandelt, sondern als natürlicher nächster Schritt des Frameworks.
+TILES würde damit nicht nur einen weiteren Datensatz darstellen, sondern die erste echte Langzeitprüfung der Memory-Schicht.
 
-## Bedeutung für den Polar-Pilot
+## Bedeutung für Garmin Forerunner 965 und Polar H10
 
-Auch der geplante Polar-Brustgurt-Test kann später dasselbe Schema nutzen.
+Für spätere Validierung und Tests stehen Garmin Forerunner 965 und Polar H10 als mögliche eigene Pilot-Sensorik zur Verfügung.
+
+Diese Pilotdaten können später als Real-World-Validation-Layer dienen.
 
 Mögliche spätere Felder:
 
-- `dataset = polar_pilot`
-- `domain = autonomic` oder `mixed_sensor`
-- `subject_id = pilot_001`
-- `session_id = konkrete Messsession`
+| Feld | Beispiel |
+|---|---|
+| `dataset` | `garmin_polar_pilot` |
+| `domain` | `mixed_sensor` oder `autonomic` |
+| `subject_id` | `pilot_001` |
+| `session_id` | konkrete Messsession |
+| `evidence_scope` | `session_or_pilot_sequence` oder später `longitudinal_real_world_sequence` |
 
-Der Pilot-Test wäre eine explorative Demonstration, keine Validierung.
+Wichtig: Diese Geräte werden im aktuellen Stand noch nicht ausgewertet. Sie dienen als spätere Validierungs- und Testperspektive.
+
+Für die Thesis ist diese Einordnung wertvoll, weil sie zeigt, dass das Framework nicht nur auf öffentliche Datensätze beschränkt ist, sondern für spätere reale Sensoraufnahmen vorbereitet wurde.
 
 ## Grafische Darstellung
 
@@ -266,8 +324,6 @@ Zusätzlich wurden zwei Übersichtsplots für das Longitudinal Dysbalance Memory
 - `reports/figures/longitudinal_memory_hypothesis_types_by_dataset.png`
 
 Die Plots visualisieren die Verteilung der Hypothesenstatus sowie die Verteilung der Hypothesentypen getrennt nach Datensatz.
-
-Sie dienen als kompakte Ergebnisübersicht und unterstützen die Interpretation der Memory-Schicht auf aggregierter Ebene.
 
 ## Lokale Artefakte
 
@@ -281,6 +337,7 @@ Erzeugte Dateien:
 Quellcode:
 
 - `src/longitudinal/dysbalance_memory.py`
+- `src/longitudinal/plot_dysbalance_memory.py`
 
 Design-Dokument:
 
@@ -290,24 +347,26 @@ Design-Dokument:
 
 Die aktuelle Memory-Auswertung besitzt wichtige Grenzen:
 
-- PAMAP2 und WESAD sind keine echten Langzeitdatensätze.
+- PAMAP2, WESAD und MHEALTH sind keine echten Langzeitdatensätze.
 - Die Episodenlogik basiert zunächst auf Fensterabständen.
 - Statuswerte wie `confirmed` sind framework-intern zu verstehen.
 - Es gibt keine klinische Validierung.
 - Sensorartefakte können Events erzeugen.
 - Kontextuelle Interpretation bleibt notwendig.
+- Garmin- und Polar-Daten sind noch nicht erhoben oder integriert.
 - Echte longitudinale Aussagen sind erst mit TILES-2018 oder Pilotdaten möglich.
 
 ## Zwischenfazit
 
-Das Longitudinal Dysbalance Memory schließt die bisher offene methodische Lücke zwischen Fensteranalyse und longitudinaler Verfolgung.
+Das Longitudinal Dysbalance Memory schließt die methodische Lücke zwischen Fensteranalyse und longitudinaler Verfolgung.
 
 Aktuell zeigt es:
 
+- PAMAP2, WESAD und MHEALTH lassen sich gemeinsam in die Memory-Struktur überführen.
 - Score- und Anomaly-Ausgaben lassen sich in Events überführen.
 - Events lassen sich zu Episoden gruppieren.
 - Episoden lassen sich zu subject-spezifischen Hypothesen aggregieren.
-- Die Hypothesen bleiben durch `evidence_scope` und `status_interpretation` sauber begrenzt.
-- Das Schema ist vorbereitet für TILES-2018 und spätere Pilotdaten.
+- Alle aktuellen Hypothesen bleiben durch `evidence_scope` sauber begrenzt.
+- Das Schema ist vorbereitet für TILES-2018 sowie spätere Garmin-/Polar-Pilotdaten.
 
-Damit ist der longitudinale Framework-Baustein konzeptionell und technisch vorbereitet.
+Damit ist der longitudinale Framework-Baustein konzeptionell und technisch longitudinal-ready.

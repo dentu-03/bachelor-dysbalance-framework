@@ -10,7 +10,8 @@ import pandas as pd
 from src.project_paths import REPORTS_DIR
 
 
-FEATURE_SET = "component_level"
+DEFAULT_FEATURE_SET = "component_level"
+MHEALTH_FEATURE_SET = "movement_component_level"
 CONTAMINATION = 0.05
 MAX_GAP_WINDOWS = 2
 
@@ -20,6 +21,7 @@ class MemoryConfig:
     dataset: str
     domain: str
     anomaly_path: Path
+    feature_set: str
     subject_column: str
     session_column: str
     window_column: str
@@ -29,13 +31,14 @@ class MemoryConfig:
     context_name_column: str
 
 
-def load_configs() -> tuple[MemoryConfig, MemoryConfig]:
+def load_configs() -> tuple[MemoryConfig, MemoryConfig, MemoryConfig]:
     anomaly_dir = REPORTS_DIR / "anomaly"
 
     pamap2 = MemoryConfig(
         dataset="pamap2",
         domain="functional_motor",
         anomaly_path=anomaly_dir / "pamap2_isolation_forest_anomaly_scores.csv",
+        feature_set=DEFAULT_FEATURE_SET,
         subject_column="subject_id",
         session_column="session_id",
         window_column="window_index",
@@ -49,6 +52,7 @@ def load_configs() -> tuple[MemoryConfig, MemoryConfig]:
         dataset="wesad",
         domain="autonomic",
         anomaly_path=anomaly_dir / "wesad_isolation_forest_anomaly_scores.csv",
+        feature_set=DEFAULT_FEATURE_SET,
         subject_column="subject_id",
         session_column="session_id",
         window_column="window_index",
@@ -58,7 +62,21 @@ def load_configs() -> tuple[MemoryConfig, MemoryConfig]:
         context_name_column="label_name",
     )
 
-    return pamap2, wesad
+    mhealth = MemoryConfig(
+        dataset="mhealth",
+        domain="functional_motor",
+        anomaly_path=anomaly_dir / "mhealth" / "mhealth_isolation_forest_predictions.csv",
+        feature_set=MHEALTH_FEATURE_SET,
+        subject_column="subject_id",
+        session_column="session_id",
+        window_column="window_index",
+        start_column="start_sample",
+        end_column="end_sample",
+        context_column="label",
+        context_name_column="activity_name",
+    )
+
+    return pamap2, wesad, mhealth
 
 
 def load_anomaly_scores(config: MemoryConfig) -> pd.DataFrame:
@@ -70,7 +88,7 @@ def load_anomaly_scores(config: MemoryConfig) -> pd.DataFrame:
     df = pd.read_csv(config.anomaly_path)
 
     df = df[
-        (df["feature_set"] == FEATURE_SET)
+        (df["feature_set"] == config.feature_set)
         & (df["contamination"] == CONTAMINATION)
     ].copy()
 
@@ -260,6 +278,72 @@ def create_wesad_events(df: pd.DataFrame) -> pd.DataFrame:
         return events
 
     events.insert(0, "event_id", [f"EVT_WESAD_{i:06d}" for i in range(1, len(events) + 1)])
+
+    return events
+
+
+
+def create_mhealth_events(df: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+
+    for _, row in df.iterrows():
+        functional_strength = float(row["functional_deviation_strength"])
+        ecg_strength = float(row["ecg_signal_deviation_strength"])
+        combined_strength = float(row["combined_movement_ecg_deviation_strength"])
+
+        is_threshold_event = functional_strength >= 2.0
+        is_model_anomaly = bool(row["is_anomaly"])
+        is_rank_event = False
+
+        if not (is_threshold_event or is_model_anomaly):
+            continue
+
+        if is_threshold_event and is_model_anomaly:
+            event_type = "combined_score_model_event"
+        elif is_threshold_event:
+            event_type = "functional_motor_deviation"
+        else:
+            event_type = "model_anomaly"
+
+        rows.append(
+            {
+                "dataset": "mhealth",
+                "domain": "functional_motor",
+                "subject_id": str(row["subject_id"]),
+                "session_id": "public_mhealth_protocol",
+                "source_level": "window",
+                "window_index": int(row["window_index"]),
+                "start_position": safe_float(row["start_sample"]),
+                "end_position": safe_float(row["end_sample"]),
+                "context_label": row["label"],
+                "context_name": row["activity_name"],
+                "primary_score_name": "functional_deviation_strength",
+                "primary_score_value": functional_strength,
+                "secondary_score_name": "combined_movement_ecg_deviation_strength",
+                "secondary_score_value": combined_strength,
+                "anomaly_score": safe_float(row["anomaly_score"]),
+                "anomaly_score_z": None,
+                "anomaly_rank_percent": None,
+                "is_threshold_event": bool(is_threshold_event),
+                "is_model_anomaly": bool(is_model_anomaly),
+                "is_high_rank_event": bool(is_rank_event),
+                "event_strength": max(functional_strength, combined_strength),
+                "event_type": event_type,
+                "component_summary": (
+                    f"dominant_component={row.get('dominant_functional_component', 'unknown')}; "
+                    f"ecg_signal_deviation_strength={ecg_strength:.3f}; "
+                    f"combined_movement_ecg_deviation_strength={combined_strength:.3f}"
+                ),
+                "created_from": "mhealth_movement_component_level_isolation_forest",
+            }
+        )
+
+    events = pd.DataFrame(rows)
+
+    if events.empty:
+        return events
+
+    events.insert(0, "event_id", [f"EVT_MHEALTH_{i:06d}" for i in range(1, len(events) + 1)])
 
     return events
 
@@ -456,7 +540,11 @@ def build_hypotheses(episodes: pd.DataFrame) -> pd.DataFrame:
 
 def summarize_memory(events: pd.DataFrame, episodes: pd.DataFrame, hypotheses: pd.DataFrame) -> dict:
     summary = {
-        "feature_set": FEATURE_SET,
+        "feature_sets": {
+            "pamap2": DEFAULT_FEATURE_SET,
+            "wesad": DEFAULT_FEATURE_SET,
+            "mhealth": MHEALTH_FEATURE_SET,
+        },
         "contamination": CONTAMINATION,
         "max_gap_windows": MAX_GAP_WINDOWS,
         "n_events": int(len(events)),
@@ -498,19 +586,22 @@ def main() -> None:
     output_dir = REPORTS_DIR / "longitudinal"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    pamap2_config, wesad_config = load_configs()
+    pamap2_config, wesad_config, mhealth_config = load_configs()
 
     pamap2_scores = load_anomaly_scores(pamap2_config)
     wesad_scores = load_anomaly_scores(wesad_config)
+    mhealth_scores = load_anomaly_scores(mhealth_config)
 
     print("Loaded PAMAP2 anomaly scores:", pamap2_scores.shape)
     print("Loaded WESAD anomaly scores:", wesad_scores.shape)
+    print("Loaded MHEALTH anomaly scores:", mhealth_scores.shape)
 
     pamap2_events = create_pamap2_events(pamap2_scores)
     wesad_events = create_wesad_events(wesad_scores)
+    mhealth_events = create_mhealth_events(mhealth_scores)
 
     event_parts = [
-        part for part in [pamap2_events, wesad_events]
+        part for part in [pamap2_events, wesad_events, mhealth_events]
         if part is not None and not part.empty
     ]
 
