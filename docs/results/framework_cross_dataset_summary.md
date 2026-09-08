@@ -179,6 +179,7 @@ Die MHEALTH-Pipeline umfasst:
 - segment-sichere Tensorisierung
 - MiniRocket Subject-Split Baseline
 - MiniRocket Leave-One-Subject-Out Baseline
+- MultiRocket Leave-One-Subject-Out Baseline
 - Movement Feature Extraction
 - Functional Dysbalance Scores
 - Dysbalance-Plots
@@ -190,9 +191,10 @@ Die supervised Baseline zeigte:
 | Experiment | Accuracy | Macro F1 |
 |---|---:|---:|
 | Subject Split 1–8 vs. 9–10 | 1.0000 | 1.0000 |
-| Leave-One-Subject-Out Mean | 0.9521 | 0.9433 |
+| MiniRocket Leave-One-Subject-Out Mean | 0.9521 | 0.9433 |
+| MultiRocket Leave-One-Subject-Out Mean | 0.9725 | 0.9694 |
 
-Der perfekte Subject-Split wurde nicht isoliert überinterpretiert. Die LOSO-Ergebnisse liefern das robustere Bild: starke Generalisierung mit sichtbaren subject- und aktivitätsabhängigen Grenzen, insbesondere bei `jogging` und `running`.
+Der perfekte Subject-Split wurde nicht isoliert überinterpretiert. Die LOSO-Ergebnisse liefern das robustere Bild: starke Generalisierung mit sichtbaren subject- und aktivitätsabhängigen Grenzen. MultiRocket verbessert die MHEALTH-LOSO-Leistung gegenüber MiniRocket zusätzlich von 0.9521 auf 0.9725 Accuracy und von 0.9433 auf 0.9694 Macro-F1.
 
 Die funktionale MHEALTH-Dysbalance-Auswertung nutzt unter anderem:
 
@@ -236,7 +238,7 @@ Die geringe ECG-Korrelation stützt die vorsichtige Interpretation: Die MHEALTH-
 |---|---|---|---|
 | Primäre Domäne | Bewegung | autonome Regulation | Bewegung + multimodale Zusatzsignale |
 | Hauptziel | funktionale Abweichung | autonome Abweichung | externe Transferprüfung |
-| Baseline-Modell | MiniRocket | MiniRocket | MiniRocket |
+| Baseline-Modell | MiniRocket | MiniRocket | MiniRocket + MultiRocket |
 | Score-Normalisierung | subject-bezogen | subject-/condition-bezogen | subject-/activity-bezogen |
 | Score-Typ | funktional-motorisch | autonom-physiologisch | funktional-motorisch mit ECG-Zusatzsicht |
 | Anomaly-Ebene | Isolation Forest | Isolation Forest | Isolation Forest |
@@ -318,7 +320,7 @@ Grenzen:
 - Die Daten sind kontrollierte Forschungsdatensätze.
 - Klinische Diagnose ist explizit außerhalb des Scopes.
 - Echte longitudinale Evidenz steht noch aus.
-- MHEALTH ist bisher noch nicht in das Longitudinal Memory integriert.
+- MHEALTH ist in das Longitudinal Memory integriert und erweitert die Memory-Schicht um eine externe funktional-motorische Transferprüfung.
 - TILES ist als echte Longitudinal-Perspektive noch nicht umgesetzt.
 
 ## Current Scientific Interpretation
@@ -362,6 +364,7 @@ Completed core result blocks:
 Open core result blocks:
 
 - MHEALTH integration into Longitudinal Dysbalance Memory
+- MHEALTH MultiRocket LOSO model layer
 - TILES feasibility and import decision
 - final cross-dataset evaluation tables
 - thesis chapter drafts
@@ -370,8 +373,6 @@ Open core result blocks:
 
 ## Next Work Package
 
-Der nächste methodisch sinnvolle Schritt ist die Integration von MHEALTH in die Memory-Schicht oder alternativ die Erstellung einer finalen Cross-Dataset-Evaluation-Tabelle.
+Der nächste methodisch sinnvolle Schritt ist die Erweiterung der Rocket-basierten Modellschicht auf PAMAP2 und WESAD sowie die Vorbereitung der TILES-Integration als echte longitudinale Datensatzebene.
 
-MHEALTH-Memory wäre methodisch naheliegend, weil nun MHEALTH-Events aus Thresholds und modellbasierten Anomalien erzeugt werden könnten. Gleichzeitig sollte klar markiert bleiben, dass auch MHEALTH keine echte longitudinale Evidenz liefert.
-
-Eine Cross-Dataset-Evaluation-Tabelle wäre thesis-nah, weil sie PAMAP2, WESAD und MHEALTH kompakt gegenüberstellt und direkt in den Ergebnisteil übernommen werden kann.
+Eine finale Cross-Dataset-Evaluation-Tabelle bleibt thesis-nah, weil sie PAMAP2, WESAD, MHEALTH, Anomaly Detection, Memory und MultiRocket kompakt gegenüberstellt und direkt in den Ergebnisteil übernommen werden kann.
