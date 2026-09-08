@@ -376,3 +376,76 @@ Open core result blocks:
 Der nächste methodisch sinnvolle Schritt ist die Erweiterung der Rocket-basierten Modellschicht auf PAMAP2 und WESAD sowie die Vorbereitung der TILES-Integration als echte longitudinale Datensatzebene.
 
 Eine finale Cross-Dataset-Evaluation-Tabelle bleibt thesis-nah, weil sie PAMAP2, WESAD, MHEALTH, Anomaly Detection, Memory und MultiRocket kompakt gegenüberstellt und direkt in den Ergebnisteil übernommen werden kann.
+
+
+
+## Cross-Dataset MultiRocket Model Layer
+
+Die MultiRocket-Auswertung ergänzt die bisherige Framework-Evaluation um eine starke diskriminative Zeitreihenmodellschicht. Diese Modellschicht ist bewusst von den erklärbaren Dysbalance Scores, der modellbasierten Anomaly Detection und dem longitudinalen Dysbalance Memory getrennt.
+
+Aus Sicht der Arbeit übernimmt MultiRocket drei Funktionen:
+
+1. Es prüft, ob die segment-sicheren multimodalen Fenster robuste, subject-übergreifend lernbare Zeitreihenstruktur enthalten.
+2. Es liefert eine leistungsstarke Referenzschicht gegenüber den erklärbaren Dysbalance Scores.
+3. Es macht sichtbar, welche Biosignal-Domänen stärker oder schwächer generalisieren.
+
+| Dataset | Domäne | Validierung | MultiRocket-Variante | Accuracy | Macro-F1 | Weighted-F1 |
+|---|---|---|---|---:|---:|---:|
+| MHEALTH | funktional-motorisch + ECG | Leave-One-Subject-Out | 10,000 kernels | 0.9725 | 0.9694 | 0.9673 |
+| PAMAP2 | funktional-motorisch | Leave-One-Subject-Out | 5,000 kernels | 0.9443 | 0.9411 | 0.9444 |
+| WESAD | autonom-affektiv | Subject-wise Split | standardisiert, stride 10, 5,000 kernels | 0.7730 | 0.6981 | 0.7614 |
+
+Die Ergebnisse zeigen eine klare Domänenstruktur. Die funktional-motorischen Datensätze PAMAP2 und MHEALTH erreichen gemeinsam eine mittlere Accuracy von 0.9584. WESAD liegt mit 0.7730 niedriger, verbessert aber die standardisierte MiniRocket-Baseline um 0.0563.
+
+Diese Differenz ist für die Arbeit produktiv: Bewegungsnahe Aktivitätsmuster sind subject-übergreifend sehr robust modellierbar, während autonom-affektive Zustände stärker personenabhängig, überlappend und erklärungsbedürftig bleiben.
+
+Damit wird MultiRocket nicht als alleinige Lösung interpretiert, sondern als leistungsstarke Modellschicht innerhalb des Frameworks. Die eigentliche Dysbalance-Interpretation entsteht weiterhin über Scores, Anomaly Detection und Memory.
+
+
+
+
+## MultiRocket Error-Dysbalance Linking
+
+Neben der reinen Klassifikationsleistung wurde eine zusätzliche Verknüpfung zwischen MultiRocket-Fehlern, erklärbaren Dysbalance Scores und modellbasierter Anomaly Detection ausgewertet.
+
+Die Leitfrage lautet:
+
+> Sind falsch klassifizierte MultiRocket-Fenster zugleich physiologisch oder funktional auffälliger?
+
+Diese Frage ist für die Arbeit zentral, weil sie Modellfehler nicht nur als technische Fehlklassifikationen behandelt, sondern mit der erklärbaren Dysbalance-Ebene verbindet.
+
+| Dataset | Fehlerquote | Score korrekt | Score falsch | Score-Differenz | Anomaly korrekt | Anomaly falsch | Interpretation |
+|---|---:|---:|---:|---:|---:|---:|---|
+| MHEALTH | 2.78 % | 0.7972 | 0.7293 | -0.0679 | 5.07 % | 2.82 % | Fehler eher durch Klassenähnlichkeit, besonders jogging/running |
+| PAMAP2 | 5.65 % | 0.6021 | 1.5871 | +0.9850 | 3.14 % | 36.13 % | Fehler stark mit funktionaler Dysbalance und Anomaly Detection verbunden |
+| WESAD | 22.70 % | 0.8246 | 0.6443 | -0.1803 | 5.12 % | 3.84 % | Fehler eher durch autonom-affektive Zustandsüberlappung |
+
+Der wichtigste Befund liegt bei PAMAP2: Falsch klassifizierte Fenster weisen im Mittel einen mehr als doppelt so hohen funktionalen Dysbalance Score auf wie korrekt klassifizierte Fenster. Gleichzeitig steigt die Anomaly-Rate von 3.14 % auf 36.13 %. Damit markieren MultiRocket-Fehler in PAMAP2 häufig genau jene Fensterbereiche, die auch durch die erklärbaren und modellbasierten Dysbalance-Schichten auffällig werden.
+
+MHEALTH und WESAD zeigen dagegen eine andere Struktur. Bei MHEALTH entstehen Fehler vor allem zwischen sehr ähnlichen Bewegungsaktivitäten wie jogging und running. Bei WESAD dominieren physiologisch plausible Überlappungen zwischen amusement, stress, meditation und baseline. In beiden Fällen sind Fehler im Mittel nicht stärker dysbalanced als korrekt klassifizierte Fenster.
+
+Diese Differenzierung ist für die Thesis entscheidend: Modellunsicherheit, Dysbalance Score und Anomaly Detection können zusammenfallen, müssen es aber nicht. Dadurch wird das Framework nicht auf eine einfache Gleichung „Fehler = Dysbalance“ reduziert, sondern erlaubt eine domänenspezifische Interpretation.
+
+## Statistical Error-Dysbalance Check
+
+Die Error-Dysbalance-Verknüpfung wurde zusätzlich statistisch geprüft. Dafür wurden korrekt und falsch klassifizierte MultiRocket-Fenster hinsichtlich Score-Differenz, nichtparametrischem Mann-Whitney-Test, Cliff's delta und Anomaly-Odds-Ratio verglichen.
+
+| Dataset | Score-Differenz falsch-korrekt | 95%-CI | Cliff's delta | Anomaly-Odds-Ratio | Interpretation |
+|---|---:|---:|---:|---:|---|
+| MHEALTH | -0.0679 | [-0.1392, 0.0075] | -0.1020 | 0.5424 | Fehler nicht dysbalance-getrieben |
+| PAMAP2 | 0.9850 | [0.8573, 1.1167] | 0.5070 | 17.4309 | starker Fehler-Dysbalance-Zusammenhang |
+| WESAD | -0.1803 | [-0.2088, -0.1534] | -0.3256 | 0.7406 | Fehler eher Zustandsüberlappung |
+
+Der stärkste und methodisch wichtigste Befund bleibt PAMAP2: Falsch klassifizierte Fenster zeigen eine deutlich höhere funktionale Dysbalance, eine positive Effektgröße und eine stark erhöhte Anomaly-Odds-Ratio. MHEALTH und WESAD zeigen dagegen, dass Fehler nicht automatisch Dysbalance bedeuten. Diese Differenzierung verhindert eine Überinterpretation von Modellfehlern und stärkt die domänenspezifische Framework-Logik.
+
+## MultiRocket Error-Memory Linking
+
+Zusätzlich zur Error-Dysbalance-Auswertung wurde geprüft, ob falsch klassifizierte MultiRocket-Fenster häufiger in der Longitudinal Dysbalance Memory-Schicht erscheinen.
+
+| Dataset | Memory Events korrekt | Memory Events falsch | Event-Odds-Ratio | Hypothesen korrekt | Hypothesen falsch |
+|---|---:|---:|---:|---:|---:|
+| MHEALTH | 5.07 % | 2.82 % | 0.5424 | 5.07 % | 2.82 % |
+| PAMAP2 | 3.17 % | 36.13 % | 17.2723 | 3.17 % | 36.13 % |
+| WESAD | 8.85 % | 3.99 % | 0.4280 | 8.85 % | 3.99 % |
+
+Diese Auswertung verbindet Modellunsicherheit mit temporaler Event-, Episoden- und Hypothesenbildung. Sie bleibt vorsichtig zu interpretieren, weil das aktuelle Memory kontrollierte Window-Sequenzen und noch keine echte Langzeitvalidierung abbildet.
