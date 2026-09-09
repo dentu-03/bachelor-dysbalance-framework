@@ -469,3 +469,15 @@ Die vorbereitete Pipeline umfasst Inventarprüfung, Subject-Day-Schema, Schema-V
 Aktuell liegen lokal noch keine nutzbaren TILES-subject-day-Daten vor. Deshalb bleibt `true_longitudinal_hypotheses = 0`. Das Framework ist damit longitudinal-ready, behauptet aber noch keine echte longitudinale Evidenz.
 
 Diese Trennung ist methodisch wichtig: PAMAP2, WESAD und MHEALTH stützen die kontrollierte Score-, Anomaly-, MultiRocket- und Memory-Logik. TILES bleibt die vorbereitete Realwelt-Längsschnittschicht, die erst bei vorhandenen und rechtlich nutzbaren Daten aktiviert wird.
+
+## Thesis-Oriented Consolidation
+
+Der aktuelle Projektstand lässt sich als mehrschichtiges Dysbalance-Framework zusammenfassen.
+
+Die bisherige Arbeit umfasst Datenimport, Tensorisierung, erklärbare Dysbalance Scores, Isolation-Forest-Anomaly-Detection, Longitudinal Dysbalance Memory, MultiRocket-basierte Zeitreihenmodellierung, Error-Dysbalance-Linking, Error-Memory-Linking und die vorbereitete TILES-2018-Longitudinalschicht.
+
+Der zentrale methodische Befund ist nicht allein hohe Klassifikationsleistung. Entscheidend ist die kontrollierte Verbindung mehrerer Ebenen: Modellleistung, erklärbare Scores, Anomalien, Fehlerstruktur und temporale Hypothesenbildung.
+
+PAMAP2 liefert den stärksten positiven Brückenbefund zwischen Modellunsicherheit, funktionaler Dysbalance, Anomaly Detection und Memory. MHEALTH und WESAD zeigen dagegen, dass Klassifikationsfehler nicht pauschal als Dysbalance interpretiert werden dürfen.
+
+Damit entsteht eine wissenschaftlich vorsichtige Kernaussage: Das Framework kann personalisierte physiologische Abweichungsmuster erkennen und erklären; echte longitudinale Verfolgung ist technisch vorbereitet, aber erst mit TILES-2018 oder späteren Pilotdaten datengetrieben validierbar.
