@@ -449,3 +449,23 @@ Zusätzlich zur Error-Dysbalance-Auswertung wurde geprüft, ob falsch klassifizi
 | WESAD | 8.85 % | 3.99 % | 0.4280 | 8.85 % | 3.99 % |
 
 Diese Auswertung verbindet Modellunsicherheit mit temporaler Event-, Episoden- und Hypothesenbildung. Sie bleibt vorsichtig zu interpretieren, weil das aktuelle Memory kontrollierte Window-Sequenzen und noch keine echte Langzeitvalidierung abbildet.
+
+## TILES-2018 Longitudinal Preparation
+
+TILES-2018 ist inzwischen als echte longitudinale Zielschicht vorbereitet, aber noch nicht datengetrieben integriert.
+
+Die vorbereitete Pipeline umfasst Inventarprüfung, Subject-Day-Schema, Schema-Validierung, longitudinale Score-Bildung, Memory-Event-Adapter und optionale Einbindung in das bestehende Longitudinal Dysbalance Memory.
+
+| Komponente | Status |
+|---|---|
+| TILES-Integrationsplan | vorbereitet |
+| Subject-Day-Schema | vorbereitet |
+| lokales Inventar | implementiert |
+| Schema-Validator | implementiert |
+| longitudinaler Score-Adapter | implementiert |
+| Memory-Event-Adapter | implementiert |
+| optionale Memory-Einbindung | implementiert |
+
+Aktuell liegen lokal noch keine nutzbaren TILES-subject-day-Daten vor. Deshalb bleibt `true_longitudinal_hypotheses = 0`. Das Framework ist damit longitudinal-ready, behauptet aber noch keine echte longitudinale Evidenz.
+
+Diese Trennung ist methodisch wichtig: PAMAP2, WESAD und MHEALTH stützen die kontrollierte Score-, Anomaly-, MultiRocket- und Memory-Logik. TILES bleibt die vorbereitete Realwelt-Längsschnittschicht, die erst bei vorhandenen und rechtlich nutzbaren Daten aktiviert wird.
