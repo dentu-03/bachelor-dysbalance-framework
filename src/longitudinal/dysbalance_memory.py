@@ -14,6 +14,7 @@ DEFAULT_FEATURE_SET = "component_level"
 MHEALTH_FEATURE_SET = "movement_component_level"
 CONTAMINATION = 0.05
 MAX_GAP_WINDOWS = 2
+TILES_EVENTS_PATH = REPORTS_DIR / "tiles2018" / "tiles2018_memory_events.csv"
 
 
 @dataclass(frozen=True)
@@ -96,6 +97,55 @@ def load_anomaly_scores(config: MemoryConfig) -> pd.DataFrame:
     df["domain"] = config.domain
 
     return df
+
+
+def load_optional_tiles_events(path: Path = TILES_EVENTS_PATH) -> pd.DataFrame:
+    if not path.exists():
+        print("No TILES memory events found:", path)
+        return pd.DataFrame()
+
+    events = pd.read_csv(path)
+
+    required_columns = [
+        "event_id",
+        "dataset",
+        "domain",
+        "subject_id",
+        "session_id",
+        "source_level",
+        "window_index",
+        "start_position",
+        "end_position",
+        "context_label",
+        "context_name",
+        "primary_score_name",
+        "primary_score_value",
+        "anomaly_score",
+        "anomaly_score_z",
+        "anomaly_rank_percent",
+        "is_threshold_event",
+        "is_model_anomaly",
+        "is_high_rank_event",
+        "event_strength",
+        "event_type",
+        "component_summary",
+        "created_from",
+    ]
+
+    missing = [column for column in required_columns if column not in events.columns]
+    if missing:
+        raise ValueError(
+            "TILES memory events are not compatible with the memory schema. "
+            f"Missing columns: {missing}"
+        )
+
+    events["dataset"] = "tiles2018"
+    events["domain"] = "longitudinal_real_world"
+    events["source_level"] = "subject_day"
+
+    print("Loaded TILES memory events:", events.shape)
+
+    return events
 
 
 def safe_float(value) -> float | None:
@@ -544,7 +594,9 @@ def summarize_memory(events: pd.DataFrame, episodes: pd.DataFrame, hypotheses: p
             "pamap2": DEFAULT_FEATURE_SET,
             "wesad": DEFAULT_FEATURE_SET,
             "mhealth": MHEALTH_FEATURE_SET,
+            "tiles2018": "subject_day_longitudinal_score_if_available",
         },
+        "optional_tiles_events_path": str(TILES_EVENTS_PATH),
         "contamination": CONTAMINATION,
         "max_gap_windows": MAX_GAP_WINDOWS,
         "n_events": int(len(events)),
@@ -599,9 +651,10 @@ def main() -> None:
     pamap2_events = create_pamap2_events(pamap2_scores)
     wesad_events = create_wesad_events(wesad_scores)
     mhealth_events = create_mhealth_events(mhealth_scores)
+    tiles_events = load_optional_tiles_events()
 
     event_parts = [
-        part for part in [pamap2_events, wesad_events, mhealth_events]
+        part for part in [pamap2_events, wesad_events, mhealth_events, tiles_events]
         if part is not None and not part.empty
     ]
 
