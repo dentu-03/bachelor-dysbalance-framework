@@ -481,3 +481,11 @@ Der zentrale methodische Befund ist nicht allein hohe Klassifikationsleistung. E
 PAMAP2 liefert den stärksten positiven Brückenbefund zwischen Modellunsicherheit, funktionaler Dysbalance, Anomaly Detection und Memory. MHEALTH und WESAD zeigen dagegen, dass Klassifikationsfehler nicht pauschal als Dysbalance interpretiert werden dürfen.
 
 Damit entsteht eine wissenschaftlich vorsichtige Kernaussage: Das Framework kann personalisierte physiologische Abweichungsmuster erkennen und erklären; echte longitudinale Verfolgung ist technisch vorbereitet, aber erst mit TILES-2018 oder späteren Pilotdaten datengetrieben validierbar.
+
+## Thesis Chapter Mapping
+
+Zusätzlich zur Konsolidierung wurde eine Kapitel-Mapping-Datei erstellt.
+
+Sie ordnet die bestehenden Artefakte auf eine mögliche Thesis-Struktur aus Einleitung, Grundlagen, Methodik, Implementierung, Ergebnissen, Diskussion sowie Fazit und Ausblick ab.
+
+Die wichtigste Einschätzung lautet: Der Methodik- und Ergebnisteil ist inzwischen strukturell stark vorbereitet. Die größte verbleibende Arbeit liegt in Literaturverankerung, wissenschaftlicher Ausformulierung und präziser Diskussion der Grenzen.
